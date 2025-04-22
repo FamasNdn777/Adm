@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Jogo da Velha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: 'Orbitron', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: white;
+      font-size: 32px;
+    }
+
+    .dificuldade {
+      background-color: blue;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin: 10px 0;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    .tabuleiro {
+      display: grid;
+      grid-template-columns: repeat(3, 80px);
+      grid-template-rows: repeat(3, 80px);
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .casa {
+      width: 80px;
+      height: 80px;
+      border: 2px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .entrada-jogador {
+      display: flex;
+      margin: 10px 0;
+    }
+
+    .entrada-jogador input {
+      padding: 5px;
+      margin-right: 5px;
+    }
+
+    .ranking {
+      background-color: white;
+      padding: 10px;
+      border-radius: 10px;
+      width: 250px;
+      display: none;
+    }
+
+    .ranking h2 {
+      color: white;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .jogador {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid black;
+    }
+
+    .jogador span:first-child {
+      color: white !important; /* Azul puro nos nomes */
+    }
+
+    .placar {
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .placar div {
+      background-color: #111;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .btn-ranking {
+      background-color: blue;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      margin-top: 20px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>JOGO DA VELHA</h1>
+  <div class="dificuldade" onclick="trocarDificuldade()">DIFICULDADE: <span id="nivel">FÁCIL</span></div>
+  <div id="vez">Vez do jogador (X)</div>
+
+  <div class="entrada-jogador">
+    <input type="text" placeholder="Digite seu nome de jogador">
+    <button style="background-color: blue; color: white; border: none; padding: 6px 12px;">Salvar</button>
+  </div>
+
+  <div class="tabuleiro" id="tabuleiro">
+    <div class="casa" onclick="jogar(0)"></div>
+    <div class="casa" onclick="jogar(1)"></div>
+    <div class="casa" onclick="jogar(2)"></div>
+    <div class="casa" onclick="jogar(3)"></div>
+    <div class="casa" onclick="jogar(4)"></div>
+    <div class="casa" onclick="jogar(5)"></div>
+    <div class="casa" onclick="jogar(6)"></div>
+    <div class="casa" onclick="jogar(7)"></div>
+    <div class="casa" onclick="jogar(8)"></div>
+  </div>
+
+  <div class="placar">
+    <div>VITÓRIAS<br><span id="vitorias">0</span></div>
+    <div>DERROTAS<br><span id="derrotas">0</span></div>
+    <div>EMPATES<br><span id="empates">0</span></div>
+  </div>
+
+  <button class="btn-ranking" onclick="alternarRanking()">Mostrar Ranking</button>
+
+  <div class="ranking" id="ranking">
+    <h2>RANKING DE JOGADORES</h2>
+    <div class="jogador"><span>1. 保罗·儒尼奥尔</span><span>100000 pts</span></div>
+    <div class="jogador"><span>2. ProGamer</span><span>850 pts</span></div>
+    <div class="jogador"><span>3. VelhaKing</span><span>720 pts</span></div>
+    <div class="jogador"><span>4. GameMaster</span><span>650 pts</span></div>
+    <div class="jogador"><span>5. XisXis</span><span>580 pts</span></div>
+    <div class="jogador"><span>6. OOgamer</span><span>520 pts</span></div>
+    <div class="jogador"><span>7. VelhaPro</span><span>450 pts</span></div>
+    <div class="jogador"><span>8. NoobMaster</span><span>400 pts</span></div>
+    <div class="jogador"><span>9. GamePro</span><span>350 pts</span></div>
+    <div class="jogador"><span>10. TictacKing</span><span>300 pts</span></div>
+  </div>
+
+  <script>
+    let board = Array(9).fill("");
+    let player = "X";
+    let cpu = "O";
+    let jogoAtivo = true;
+    let dificuldade = 0;
+
+    function trocarDificuldade() {
+      dificuldade = (dificuldade + 1) % 3;
+      const nomes = ["FÁCIL", "MÉDIO", "DIFÍCIL"];
+      document.getElementById("nivel").innerText = nomes[dificuldade];
+      resetarJogo();
+    }
+
+    function jogar(pos) {
+      if (!jogoAtivo || board[pos] !== "") return;
+      board[pos] = player;
+      atualizarTabuleiro();
+      if (verificarFim()) return;
+      setTimeout(jogadaMaquina, 400);
+    }
+
+    function atualizarTabuleiro() {
+      const casas = document.querySelectorAll(".casa");
+      casas.forEach((casa, i) => {
+        casa.textContent = board[i];
+      });
+    }
+
+    function jogadaMaquina() {
+      let pos;
+      if (dificuldade === 0) pos = jogadaFacil();
+      else if (dificuldade === 1) pos = jogadaMedia();
+      else pos = jogadaDificil();
+      if (pos !== -1) board[pos] = cpu;
+      atualizarTabuleiro();
+      verificarFim();
+    }
+
+    function jogadaFacil() {
+      let livres = board.map((val, i) => val === "" ? i : null).filter(v => v !== null);
+      return livres[Math.floor(Math.random() * livres.length)] || -1;
+    }
+
+    function jogadaMedia() {
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === "") {
+          board[i] = player;
+          if (checarVitoria(player)) {
+            board[i] = "";
+            return i;
+          }
+          board[i] = "";
+        }
+      }
+      return jogadaFacil();
+    }
+
+    function jogadaDificil() {
+      return minimax(board, cpu).index;
+    }
+
+    function minimax(newBoard, jogadorAtual) {
+      const disp = newBoard.map((val, i) => val === "" ? i : null).filter(v => v !== null);
+
+      if (checarVitoria(player, newBoard)) return { score: -10 };
+      if (checarVitoria(cpu, newBoard)) return { score: 10 };
+      if (disp.length === 0) return { score: 0 };
+
+      let movimentos = [];
+      for (let i of disp) {
+        let movimento = {};
+        movimento.index = i;
+        newBoard[i] = jogadorAtual;
+
+        let resultado = minimax(newBoard, jogadorAtual === cpu ? player : cpu);
+        movimento.score = resultado.score;
+        newBoard[i] = "";
+
+        movimentos.push(movimento);
+      }
+
+      let melhorMov;
+      if (jogadorAtual === cpu) {
+        let melhorScore = -Infinity;
+        for (let i in movimentos) {
+          if (movimentos[i].score > melhorScore) {
+            melhorScore = movimentos[i].score;
+            melhorMov = movimentos[i];
+          }
+        }
+      } else {
+        let melhorScore = Infinity;
+        for (let i in movimentos) {
+          if (movimentos[i].score < melhorScore) {
+            melhorScore = movimentos[i].score;
+            melhorMov = movimentos[i];
+          }
+        }
+      }
+
+      return melhorMov;
+    }
+
+    function verificarFim() {
+      if (checarVitoria(player)) {
+        alert("Você venceu!");
+        atualizarPlacar("vitorias");
+        jogoAtivo = false;
+        return true;
+      }
+      if (checarVitoria(cpu)) {
+        alert("Você perdeu!");
+        atualizarPlacar("derrotas");
+        jogoAtivo = false;
+        return true;
+      }
+      if (!board.includes("")) {
+        alert("Empate!");
+        atualizarPlacar("empates");
+        jogoAtivo = false;
+        return true;
+      }
+      return false;
+    }
+
+    function checarVitoria(jogador, tab = board) {
+      const winCombos = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+      ];
+      return winCombos.some(combo => combo.every(i => tab[i] === jogador));
+    }
+
+    function atualizarPlacar(tipo) {
+      let el = document.getElementById(tipo);
+      el.innerText = parseInt(el.innerText) + 1;
+    }
+
+    function resetarJogo() {
+      board = Array(9).fill("");
+      jogoAtivo = true;
+      atualizarTabuleiro();
+    }
+
+    function alternarRanking() {
+      const ranking = document.getElementById("ranking");
+      const btn = document.querySelector(".btn-ranking");
+      if (ranking.style.display === "none") {
+        ranking.style.display = "block";
+        btn.innerText = "Ocultar Ranking";
+      } else {
+        ranking.style.display = "none";
+        btn.innerText = "Mostrar Ranking";
+      }
+    }
+  </script>
+</body>
+</html>
